@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<!-- B2 · Faded example: SOLUTION -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>RT task (solution)</title>
+    <script src="https://unpkg.com/jspsych@8.3.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@2.2.0"></script>
+    <link href="https://unpkg.com/jspsych@8.3.0/css/jspsych.css" rel="stylesheet" type="text/css">
+    <style>
+      .circle { width: 150px; height: 150px; border-radius: 50%; margin: auto; }
+      .blue   { background-color: royalblue; }
+      .orange { background-color: orange; }
+    </style>
+  </head>
+  <body></body>
+  <script>
+    const jsPsych = initJsPsych({
+      on_finish: function () {
+        // TODO 5: one file per participant, so files never overwrite each other
+        jsPsych.data.get().localSave("csv", `rt-task_${participant_id}.csv`);
+        jsPsych.data.displayData();
+      }
+    });
+
+    // TODO 4: random ID, added to every row of data
+    const participant_id = jsPsych.randomization.randomID(10);
+    jsPsych.data.addProperties({ participant_id: participant_id });
+
+    const timeline = [];
+
+    // ---------- Instructions ----------
+    const welcome = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: "Welcome to the experiment. Press any key to begin."
+    };
+    timeline.push(welcome);
+
+    const instructions = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: `
+        <p>A circle will appear in the centre of the screen.</p>
+        <p>If it is <strong>blue</strong>, press <kbd>F</kbd> as fast as you can.</p>
+        <p>If it is <strong>orange</strong>, press <kbd>J</kbd> as fast as you can.</p>
+        <p>Press any key to begin.</p>`,
+      post_trial_gap: 1000
+    };
+    timeline.push(instructions);
+
+    // ---------- Trials ----------
+    // One row per kind of trial: the "timeline variables"
+    const test_stimuli = [
+      { stimulus: "<div class=\"circle blue\"></div>",   color: "blue",   correct_response: "f" },
+      { stimulus: "<div class=\"circle orange\"></div>", color: "orange", correct_response: "j" }
+    ];
+
+    // Fixation cross with an unpredictable duration
+    const fixation = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: "<div style=\"font-size: 60px;\">+</div>",
+      choices: "NO_KEYS",
+      trial_duration: function () {
+        return jsPsych.randomization.sampleWithoutReplacement([250, 500, 750, 1000, 1250], 1)[0];
+      },
+      data: { task: "fixation" }            // TODO 1a
+    };
+
+    const test = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: jsPsych.timelineVariable("stimulus"),
+      choices: ["f", "j"],
+      data: {                                // TODO 1b
+        task: "response",
+        color: jsPsych.timelineVariable("color"),
+        correct_response: jsPsych.timelineVariable("correct_response")
+      },
+      on_finish: function (data) {           // TODO 2
+        // compareKeys ignores case: "F" (Caps Lock) still counts as "f"
+        data.correct = jsPsych.pluginAPI.compareKeys(data.response, data.correct_response);
+      }
+    };
+
+    const test_procedure = {
+      timeline: [fixation, test],
+      timeline_variables: test_stimuli,
+      randomize_order: true,
+      repetitions: 5
+    };
+    timeline.push(test_procedure);
+
+    const debrief = {                        // TODO 3
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: function () {
+        const trials = jsPsych.data.get().filter({ task: "response" });
+        const correct_trials = trials.filter({ correct: true });
+        const accuracy = Math.round(correct_trials.count() / trials.count() * 100);
+        const rt = Math.round(correct_trials.select("rt").mean());
+        return `<p>You responded correctly on ${accuracy}% of the trials.</p>
+                <p>Your average response time was ${rt} ms.</p>
+                <p>Press any key to finish. Thank you!</p>`;
+      }
+    };
+    timeline.push(debrief);
+
+    jsPsych.run(timeline);
+  </script>
+</html>

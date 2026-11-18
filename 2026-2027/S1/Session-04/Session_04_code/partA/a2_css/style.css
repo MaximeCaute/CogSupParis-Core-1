@@ -1,0 +1,32 @@
+/* A2 · One rule = a selector + { property: value; ... } */
+
+/* Element selector: applies to every <body> */
+body {
+  background-color: #e8e9e8;
+}
+
+/* Class selector (.): applies to every element with class="centered" */
+.centered {
+  position: absolute;
+  top: 50vh;                         /* 50% of the window height */
+  left: 50vw;                        /* 50% of the window width  */
+  transform: translate(-50%, -50%);  /* shift by half of the element itself */
+}
+
+/* Another class: rounded corners turn a square into a circle */
+.circle {
+  border-radius: 50%;
+}
+
+/* ID selector (#): applies to the one element with id="square" */
+#square {
+  width: 300px;
+  height: 300px;
+  background-color: royalblue;
+}
+
+#circle {
+  width: 150px;
+  height: 150px;
+  background-color: orange;
+}

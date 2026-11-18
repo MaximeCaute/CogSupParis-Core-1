@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<!-- B3 · Experiment audit.
+     A parity judgement task: is the digit odd or even?
+     This experiment runs without any error, and its data file looks fine.
+     Your job: find everything that could make the DATA wrong or uninterpretable.
+     Work in pairs. For each problem: (1) what is wrong, (2) why it matters
+     scientifically, (3) how you would fix it. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Parity task</title>
+    <script src="https://unpkg.com/jspsych@8.3.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@2.2.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-image-keyboard-response@2.2.0"></script>
+    <link href="https://unpkg.com/jspsych@8.3.0/css/jspsych.css" rel="stylesheet" type="text/css">
+  </head>
+  <body></body>
+  <script>
+    const jsPsych = initJsPsych({
+      on_finish: function () {
+        jsPsych.data.get().localSave("csv", "data.csv");
+      }
+    });
+
+    const timeline = [];
+
+    const instructions = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: `
+        <p>A digit will appear in the centre of the screen.</p>
+        <p>If it is <strong>odd</strong>, press <kbd>F</kbd>.</p>
+        <p>If it is <strong>even</strong>, press <kbd>J</kbd>.</p>
+        <p>Answer as fast and as accurately as you can. Press any key to begin.</p>`,
+      post_trial_gap: 1000
+    };
+    timeline.push(instructions);
+
+    const digits = [1, 2, 3, 4, 6, 7, 8, 9];
+    const test_stimuli = digits.map(function (d) {
+      return {
+        stimulus: `img/digit_${d}.png`,
+        correct_response: d % 2 === 0 ? "j" : "f"
+      };
+    });
+
+    const fixation = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: "<div style=\"font-size: 60px;\">+</div>",
+      choices: "NO_KEYS",
+      trial_duration: 500
+    };
+
+    const test = {
+      type: jsPsychImageKeyboardResponse,
+      stimulus: jsPsych.timelineVariable("stimulus"),
+      stimulus_height: 150,
+      choices: ["f", "j"],
+      data: {
+        correct_response: jsPsych.timelineVariable("correct_response")
+      },
+      on_finish: function (data) {
+        data.correct = data.response === data.correct_response;
+      }
+    };
+
+    const test_procedure = {
+      timeline: [fixation, test],
+      timeline_variables: test_stimuli,
+      repetitions: 4
+    };
+    timeline.push(test_procedure);
+
+    const debrief = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: function () {
+        const trials = jsPsych.data.get().filter({ trial_type: "image-keyboard-response" });
+        const accuracy = Math.round(trials.filter({ correct: true }).count() / trials.count() * 100);
+        return `<p>Accuracy: ${accuracy}%. Thank you! Press any key to finish.</p>`;
+      }
+    };
+    timeline.push(debrief);
+
+    jsPsych.run(timeline);
+  </script>
+</html>

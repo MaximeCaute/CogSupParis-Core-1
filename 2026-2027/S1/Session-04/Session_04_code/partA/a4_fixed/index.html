@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<!-- A4 · Debugging drill: SOLUTION
+     Bug 1 (HTML): the stylesheet path was "styles.css"; the file is "style.css".
+                   Seen in: Console (404 error) / Inspector (no styles applied).
+     Bug 2 (CSS):  "width = 150px" instead of "width: 150px" in style.css.
+                   Seen in: Inspector › Styles (declaration struck through / flagged invalid).
+     Bug 3 (JS):   the script ran in the <head>, before the <div> existed,
+                   so getElementById returned null.
+                   Seen in: Console ("Cannot read properties of null").
+     Bug 4 (JS):   "backgroundcolor" instead of "backgroundColor".
+                   NO error message at all: JS silently creates a useless property.
+                   Seen in: Inspector (the div has no inline style).
+     Lesson: not every bug throws an error. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Debugging drill (solution)</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <div id="stimulus" class="centered circle"></div>
+
+    <!-- Scripts that touch elements go AFTER those elements -->
+    <script>
+      const stimulus = document.getElementById("stimulus");
+      stimulus.style.backgroundColor = "orange";
+      const start = performance.now();
+      document.addEventListener("keydown", function (event) {
+        if (event.key === " ") {
+          console.log("RT: " + Math.round(performance.now() - start) + " ms");
+        }
+      });
+    </script>
+  </body>
+</html>

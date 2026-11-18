@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<!-- B3 · Experiment audit: CORRECTED VERSION. See AUDIT_KEY.md for the full debrief.
+     Each fix is marked [FIX n]. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Parity task (fixed)</title>
+    <script src="https://unpkg.com/jspsych@8.3.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@2.2.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-image-keyboard-response@2.2.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-preload@2.1.0"></script>
+    <link href="https://unpkg.com/jspsych@8.3.0/css/jspsych.css" rel="stylesheet" type="text/css">
+  </head>
+  <body></body>
+  <script>
+    const jsPsych = initJsPsych({
+      on_finish: function () {
+        // [FIX 7] one file per participant
+        jsPsych.data.get().localSave("csv", `parity_${participant_id}.csv`);
+      }
+    });
+
+    // [FIX 7] random participant ID, on every row
+    const participant_id = jsPsych.randomization.randomID(10);
+
+    // [FIX 2] counterbalance the response mapping ACROSS participants
+    const mapping = jsPsych.randomization.sampleWithoutReplacement(["even_right", "even_left"], 1)[0];
+    const even_key = mapping === "even_right" ? "j" : "f";
+    const odd_key  = mapping === "even_right" ? "f" : "j";
+
+    // [FIX 3] the mapping is saved with the data, too
+    jsPsych.data.addProperties({ participant_id: participant_id, mapping: mapping });
+
+    const timeline = [];
+
+    const digits = [1, 2, 3, 4, 6, 7, 8, 9];
+    const images = digits.map(function (d) { return `img/digit_${d}.png`; });
+
+    // [FIX 1] preload the images before the first trial
+    const preload = {
+      type: jsPsychPreload,
+      images: images
+    };
+    timeline.push(preload);
+
+    const instructions = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: `
+        <p>A digit will appear in the centre of the screen.</p>
+        <p>If it is <strong>odd</strong>, press <kbd>${odd_key.toUpperCase()}</kbd>.</p>
+        <p>If it is <strong>even</strong>, press <kbd>${even_key.toUpperCase()}</kbd>.</p>
+        <p>Answer as fast and as accurately as you can. Press any key to begin.</p>`,
+      post_trial_gap: 1000
+    };
+    timeline.push(instructions);
+
+    const test_stimuli = digits.map(function (d) {
+      return {
+        stimulus: `img/digit_${d}.png`,
+        digit: d,
+        parity: d % 2 === 0 ? "even" : "odd",
+        correct_response: d % 2 === 0 ? even_key : odd_key
+      };
+    });
+
+    const fixation = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: "<div style=\"font-size: 60px;\">+</div>",
+      choices: "NO_KEYS",
+      // [FIX 6] jittered fixation: the onset of the digit is not predictable
+      trial_duration: function () {
+        return jsPsych.randomization.sampleWithoutReplacement([400, 500, 600, 700, 800], 1)[0];
+      },
+      data: { task: "fixation" }
+    };
+
+    const test = {
+      type: jsPsychImageKeyboardResponse,
+      stimulus: jsPsych.timelineVariable("stimulus"),
+      stimulus_height: 150,
+      choices: ["f", "j"],
+      // [FIX 3] everything needed for the analysis is in the data
+      data: {
+        task: "response",
+        digit: jsPsych.timelineVariable("digit"),
+        parity: jsPsych.timelineVariable("parity"),
+        correct_response: jsPsych.timelineVariable("correct_response")
+      },
+      on_finish: function (data) {
+        // [FIX 4] compareKeys is case-insensitive by default ("F" counts as "f")
+        data.correct = jsPsych.pluginAPI.compareKeys(data.response, data.correct_response);
+      }
+    };
+
+    const test_procedure = {
+      timeline: [fixation, test],
+      timeline_variables: test_stimuli,
+      // [FIX 5] random order over ALL 32 trials (8 digits x 4 repetitions)
+      sample: { type: "fixed-repetitions", size: 4 }
+    };
+    timeline.push(test_procedure);
+
+    const debrief = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: function () {
+        const trials = jsPsych.data.get().filter({ task: "response" });
+        const accuracy = Math.round(trials.filter({ correct: true }).count() / trials.count() * 100);
+        return `<p>Accuracy: ${accuracy}%. Thank you! Press any key to finish.</p>`;
+      }
+    };
+    timeline.push(debrief);
+
+    jsPsych.run(timeline);
+  </script>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<!-- B2 · Worked example ("I do"): a simple reaction-time task.
+     Blue circle -> F, orange circle -> J.
+     Adapted from the official jsPsych v8 tutorial, with HTML/CSS stimuli instead of images. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>RT task (worked example)</title>
+    <script src="https://unpkg.com/jspsych@8.3.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@2.2.0"></script>
+    <link href="https://unpkg.com/jspsych@8.3.0/css/jspsych.css" rel="stylesheet" type="text/css">
+    <style>
+      .circle { width: 150px; height: 150px; border-radius: 50%; margin: auto; }
+      .blue   { background-color: royalblue; }
+      .orange { background-color: orange; }
+    </style>
+  </head>
+  <body></body>
+  <script>
+    const jsPsych = initJsPsych({
+      // At the end, show the raw data on screen (for development only)
+      on_finish: function () {
+        jsPsych.data.displayData();
+      }
+    });
+
+    const timeline = [];
+
+    // ---------- Instructions ----------
+    const welcome = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: "Welcome to the experiment. Press any key to begin."
+    };
+    timeline.push(welcome);
+
+    const instructions = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: `
+        <p>A circle will appear in the centre of the screen.</p>
+        <p>If it is <strong>blue</strong>, press <kbd>F</kbd> as fast as you can.</p>
+        <p>If it is <strong>orange</strong>, press <kbd>J</kbd> as fast as you can.</p>
+        <p>Press any key to begin.</p>`,
+      post_trial_gap: 1000
+    };
+    timeline.push(instructions);
+
+    // ---------- Trials ----------
+    // One row per kind of trial: the "timeline variables"
+    const test_stimuli = [
+      { stimulus: "<div class=\"circle blue\"></div>",   color: "blue",   correct_response: "f" },
+      { stimulus: "<div class=\"circle orange\"></div>", color: "orange", correct_response: "j" }
+    ];
+
+    // Fixation cross with an unpredictable duration
+    const fixation = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: "<div style=\"font-size: 60px;\">+</div>",
+      choices: "NO_KEYS",
+      trial_duration: function () {
+        return jsPsych.randomization.sampleWithoutReplacement([250, 500, 750, 1000, 1250], 1)[0];
+      },
+    };
+
+    // The test trial: its stimulus comes from the timeline variables
+    const test = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: jsPsych.timelineVariable("stimulus"),
+      choices: ["f", "j"]
+    };
+
+    // A procedure = a sub-timeline, run once per row of test_stimuli
+    const test_procedure = {
+      timeline: [fixation, test],
+      timeline_variables: test_stimuli,
+      randomize_order: true,
+      repetitions: 5          // 2 rows x 5 = 10 test trials
+    };
+    timeline.push(test_procedure);
+
+    jsPsych.run(timeline);
+  </script>
+</html>

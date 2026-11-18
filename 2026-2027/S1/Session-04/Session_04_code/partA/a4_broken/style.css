@@ -1,0 +1,16 @@
+body {
+  background-color: #e8e9e8;
+}
+
+.centered {
+  position: absolute;
+  top: 50vh;
+  left: 50vw;
+  transform: translate(-50%, -50%);
+}
+
+.circle {
+  width = 150px;
+  height: 150px;
+  border-radius: 50%;
+}

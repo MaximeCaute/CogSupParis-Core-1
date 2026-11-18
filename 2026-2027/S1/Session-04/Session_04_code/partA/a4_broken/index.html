@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<!-- A4 · Debugging drill.
+     EXPECTED: an orange circle in the middle of the page.
+     Pressing the space bar prints the response time in the Console.
+     This page contains 4 bugs. Fix them using ONLY the browser's DevTools
+     (Inspector, Console) to locate them. For each bug, write down which
+     layer it belongs to: HTML, CSS or JS. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Debugging drill</title>
+    <link rel="stylesheet" href="styles.css">
+    <script>
+      const stimulus = document.getElementById("stimulus");
+      stimulus.style.backgroundcolor = "orange";
+      const start = performance.now();
+      document.addEventListener("keydown", function (event) {
+        if (event.key === " ") {
+          console.log("RT: " + Math.round(performance.now() - start) + " ms");
+        }
+      });
+    </script>
+  </head>
+  <body>
+    <div id="stimulus" class="centered circle"></div>
+  </body>
+</html>

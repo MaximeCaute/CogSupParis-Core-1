@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<!-- B1 · The smallest possible jsPsych experiment (jsPsych v8, loaded from a CDN).
+     While it runs, open the Inspector: find the element jsPsych writes into. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Hello jsPsych</title>
+    <script src="https://unpkg.com/jspsych@8.3.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@2.2.0"></script>
+    <link href="https://unpkg.com/jspsych@8.3.0/css/jspsych.css" rel="stylesheet" type="text/css">
+  </head>
+  <body></body>
+  <script>
+    // 1. Initialise jsPsych
+    const jsPsych = initJsPsych();
+
+    // 2. A timeline is an array of trials
+    const timeline = [];
+
+    // 3. A trial is an object: a plugin (type) + its parameters
+    const hello = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: "Bonjour ! Press any key."
+    };
+    timeline.push(hello);
+
+    // 4. Run it. Afterwards, type jsPsych.data.get().values() in the Console.
+    jsPsych.run(timeline);
+  </script>
+</html>

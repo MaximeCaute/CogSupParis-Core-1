@@ -1,3 +1,4 @@
 # Ignore buffers from documents
 
 **/.~lock.*
+**/*.hidden.html

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<!-- A3 · One trial, written by hand (no library).
+     Open the Console (F12) to see the data. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>A trial, by hand</title>
+    <style>
+      body { background-color: #e8e9e8; font-family: sans-serif; }
+      .centered {
+        position: absolute;
+        top: 50vh;
+        left: 50vw;
+        transform: translate(-50%, -50%);
+      }
+      .circle { width: 150px; height: 150px; border-radius: 50%; }
+    </style>
+  </head>
+  <body>
+    <p id="instructions" class="centered">
+      Press F if the circle is blue, J if it is orange.<br>
+      Click on the page, then press any key to start.
+    </p>
+
+    <script>
+      // 1. CREATE the stimulus: an element, styled with our CSS classes
+      const stimulus = document.createElement("div");
+      stimulus.className = "centered circle";
+      stimulus.style.backgroundColor = "royalblue";
+
+      let startTime = null;
+
+      // 2. SHOW it, start the clock, start listening
+      function showStimulus() {
+        document.body.appendChild(stimulus);
+        startTime = performance.now();
+        document.addEventListener("keydown", recordResponse);
+      }
+
+      // 3. LISTEN for the response and MEASURE the RT
+      function recordResponse(event) {
+        const rt = performance.now() - startTime;
+        document.removeEventListener("keydown", recordResponse);
+        stimulus.remove();
+
+        // 4. LOG the data
+        const result = { stimulus: "blue", response: event.key, rt: Math.round(rt) };
+        console.log(result);
+      }
+
+      // Wait for a first key press before starting
+      document.addEventListener("keydown", function () {
+        document.getElementById("instructions").remove();
+        showStimulus();
+      }, { once: true });
+    </script>
+  </body>
+</html>
